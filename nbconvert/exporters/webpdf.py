@@ -26,7 +26,8 @@ class WebPDFExporter(HTMLExporter):
     template machinery, and then run playwright to create a pdf.
     """
 
-    os.environ.pop("DISPLAY")
+    if os.environ.get('DISPLAY') is not None:
+      os.environ.pop('DISPLAY')
 
     export_from_notebook = "PDF via HTML"
 
