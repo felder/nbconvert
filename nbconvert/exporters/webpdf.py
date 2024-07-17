@@ -170,7 +170,8 @@ class WebPDFExporter(HTMLExporter):
             pdf_data = pool.submit(run_coroutine, main(temp_file)).result()
         finally:
             if display_env is not None:
-                os.environ('DISPLAY') = display_env
+                os.environ['DISPLAY'] = display_env
+                
             # Ensure the file is deleted even if playwright raises an exception
             os.unlink(temp_file.name)
         return pdf_data
