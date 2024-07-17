@@ -71,6 +71,8 @@ class WebPDFExporter(HTMLExporter):
     def run_playwright(self, html):
         """Run playwright."""
 
+        display_env = None
+        
         async def main(temp_file):
             """Run main playwright script."""
             args = ["--no-sandbox"] if self.disable_sandbox else []
@@ -149,6 +151,11 @@ class WebPDFExporter(HTMLExporter):
         try:
             # TODO: when dropping Python 3.6, use
             # pdf_data = pool.submit(asyncio.run, main(temp_file)).result()
+            
+            # if DISPLAY is set, process hangs
+            if os.environ.get('DISPLAY') is not None:
+                display_env = os.environ.pop('DISPLAY')
+                
             def run_coroutine(coro):
                 """Run an internal coroutine."""
                 loop = (
@@ -162,6 +169,9 @@ class WebPDFExporter(HTMLExporter):
 
             pdf_data = pool.submit(run_coroutine, main(temp_file)).result()
         finally:
+            if display_env is not None:
+                os.environ['DISPLAY'] = display_env
+                
             # Ensure the file is deleted even if playwright raises an exception
             os.unlink(temp_file.name)
         return pdf_data
@@ -171,7 +181,13 @@ class WebPDFExporter(HTMLExporter):
         html, resources = super().from_notebook_node(nb, resources=resources, **kw)
 
         self.log.info("Building PDF")
+        display_env = None
+        
         pdf_data = self.run_playwright(html)
+        
+        if os.environ.get('DISPLAY') is not None:
+            display_env = os.environ.pop('DISPLAY')
+            
         self.log.info("PDF successfully created")
 
         # convert output extension to pdf
