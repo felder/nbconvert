@@ -71,6 +71,8 @@ class WebPDFExporter(HTMLExporter):
     def run_playwright(self, html):
         """Run playwright."""
 
+        display_env = None
+        
         async def main(temp_file):
             """Run main playwright script."""
             args = ["--no-sandbox"] if self.disable_sandbox else []
@@ -153,7 +155,7 @@ class WebPDFExporter(HTMLExporter):
             # if DISPLAY is set, process hangs
             if os.environ.get('DISPLAY') is not None:
                 display_env = os.environ.pop('DISPLAY')
-      
+                
             def run_coroutine(coro):
                 """Run an internal coroutine."""
                 loop = (
@@ -167,7 +169,7 @@ class WebPDFExporter(HTMLExporter):
 
             pdf_data = pool.submit(run_coroutine, main(temp_file)).result()
         finally:
-            if display_env
+            if display_env is not None:
                 os.environ('DISPLAY') = display_env
             # Ensure the file is deleted even if playwright raises an exception
             os.unlink(temp_file.name)
