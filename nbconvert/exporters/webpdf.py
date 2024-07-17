@@ -181,7 +181,13 @@ class WebPDFExporter(HTMLExporter):
         html, resources = super().from_notebook_node(nb, resources=resources, **kw)
 
         self.log.info("Building PDF")
+        display_env = None
+        
         pdf_data = self.run_playwright(html)
+        
+        if os.environ.get('DISPLAY') is not None:
+            display_env = os.environ.pop('DISPLAY')
+            
         self.log.info("PDF successfully created")
 
         # convert output extension to pdf
